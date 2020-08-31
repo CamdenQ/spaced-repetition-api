@@ -29,7 +29,7 @@ VALUES
   (6, 1, 'sechs', 'six', 7),
   (7, 1, 'sieben', 'seven', 8),
   (8, 1, 'acht', 'eight', 9),
-  (9, 1, 'nine', 'neun', 10),
+  (9, 1, 'neun', 'nine', 10),
   (10, 1, 'zehn', 'ten', null);
 
 UPDATE "language" SET head = 1 WHERE id = 1;
