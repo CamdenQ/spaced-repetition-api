@@ -14,6 +14,13 @@ const LanguageService = {
 			.where('language.user_id', user_id)
 			.first();
 	},
+	getWordById(db, id) {
+		return db.from('word').select('*').where({ id: id });
+	},
+
+	getHeadId(db) {
+		return db.from('language').select('language.head');
+	},
 
 	getScore(db) {
 		return db.from('language').select('language.total_score');
@@ -52,11 +59,13 @@ const LanguageService = {
 	insertList(db, list) {
 		let counter = 0;
 		let currNode = list.head;
-
+		// console.log(JSON.stringify(list));
+		// console.log(currNode);
 		while (counter < list.length - 1) {
 			db.update({ next: currNode.next.value.id })
 				.from('word')
-				.where({ id: currNode.value.id });
+				.where({ id: currNode.value.id })
+				.then(() => (counter = counter));
 			currNode = currNode.next;
 			counter++;
 		}
@@ -97,6 +106,15 @@ const LanguageService = {
 			.from('word')
 			.where({ id: word.value.id })
 			.update({ incorrect_count: newCount });
+	},
+	createList(head, arr, list) {
+		let currNode = head;
+		list.insertLast(currNode);
+		while (currNode.next !== null) {
+			let wordToInsert = arr.find((word) => word.id === currNode.next);
+			list.insertLast(wordToInsert);
+			currNode = wordToInsert;
+		}
 	},
 };
 

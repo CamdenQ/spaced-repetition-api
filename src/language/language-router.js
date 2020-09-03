@@ -83,9 +83,23 @@ languageRouter.route('/guess').post(express.json(), async (req, res, next) => {
 			return array;
 		}
 
+		let headId = await LanguageService.getHeadId(db);
+
+		headId = headId[0].head;
+
+		let head = await LanguageService.getWordById(db, headId);
+
+		console.log('look at me:', head);
+
 		let wordsList = new LinkedList();
 
 		let words = await LanguageService.getLanguageWords(db, languageId);
+
+		//loop through wordsArr to find head.
+
+		//insertLast for head. Loop through head next.
+
+		//insert the next node. Loop to find the next until null.
 
 		let sortedWords = bubbleSort(words);
 		let lastWord = sortedWords.shift();
@@ -104,16 +118,15 @@ languageRouter.route('/guess').post(express.json(), async (req, res, next) => {
 		}
 
 		let currentWord = wordsList.remove(wordsList.head);
+
 		await LanguageService.updateMemory(db, currentWord);
 
-		wordsList.insertAt(
-			wordsList.head.value.memory_value - 1,
-			currentWord.value
-		);
+		wordsList.insertAt(currentWord.value.memory_value, currentWord.value);
+		//console.log(JSON.stringify(wordsList));
 
 		await LanguageService.insertList(db, wordsList);
 		await LanguageService.updateHead(db, wordsList);
-		res.send('succes');
+		res.send(words);
 	} catch (error) {
 		next(error);
 	}
