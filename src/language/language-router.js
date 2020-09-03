@@ -64,24 +64,6 @@ languageRouter.route('/guess').post(express.json(), async (req, res, next) => {
 		const guess = req.body.guess;
 		const db = req.app.get('db');
 		const languageId = req.language.id;
-		function swap(array, i, j) {
-			const tmp = array[i];
-			array[i] = array[j];
-			array[j] = tmp;
-		}
-		function bubbleSort(array) {
-			let swaps = 0;
-			for (let i = 0; i < array.length - 1; i++) {
-				if (array[i].next > array[i + 1].next) {
-					swap(array, i, i + 1);
-					swaps++;
-				}
-			}
-			if (swaps > 0) {
-				return bubbleSort(array);
-			}
-			return array;
-		}
 
 		let headId = await LanguageService.getHeadId(db);
 
@@ -89,26 +71,12 @@ languageRouter.route('/guess').post(express.json(), async (req, res, next) => {
 
 		let head = await LanguageService.getWordById(db, headId);
 
-		console.log('look at me:', head);
-
-		let wordsList = new LinkedList();
-
 		let words = await LanguageService.getLanguageWords(db, languageId);
 
-		//loop through wordsArr to find head.
-
-		//insertLast for head. Loop through head next.
-
-		//insert the next node. Loop to find the next until null.
-
-		let sortedWords = bubbleSort(words);
-		let lastWord = sortedWords.shift();
-		sortedWords.push(lastWord);
+		let wordsList = LanguageService.createList(head, words);
 
 		let score = await LanguageService.getScore(db);
 		score = score[0].total_score;
-
-		sortedWords.forEach((word) => wordsList.insertLast(word));
 
 		const isCorrect = LanguageService.checkGuess(guess, wordsList);
 
@@ -122,11 +90,10 @@ languageRouter.route('/guess').post(express.json(), async (req, res, next) => {
 		await LanguageService.updateMemory(db, currentWord);
 
 		wordsList.insertAt(currentWord.value.memory_value, currentWord.value);
-		//console.log(JSON.stringify(wordsList));
 
 		await LanguageService.insertList(db, wordsList);
 		await LanguageService.updateHead(db, wordsList);
-		res.send(words);
+		res.send(wordsList);
 	} catch (error) {
 		next(error);
 	}

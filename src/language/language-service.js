@@ -59,8 +59,7 @@ const LanguageService = {
 	insertList(db, list) {
 		let counter = 0;
 		let currNode = list.head;
-		// console.log(JSON.stringify(list));
-		// console.log(currNode);
+
 		while (counter < list.length - 1) {
 			db.update({ next: currNode.next.value.id })
 				.from('word')
@@ -107,14 +106,18 @@ const LanguageService = {
 			.where({ id: word.value.id })
 			.update({ incorrect_count: newCount });
 	},
-	createList(head, arr, list) {
-		let currNode = head;
+	createList(head, arr) {
+		let currNode = head[0];
+		let list = new LinkedList();
 		list.insertLast(currNode);
+
 		while (currNode.next !== null) {
 			let wordToInsert = arr.find((word) => word.id === currNode.next);
 			list.insertLast(wordToInsert);
+
 			currNode = wordToInsert;
 		}
+		return list;
 	},
 };
 

@@ -21,12 +21,12 @@ VALUES
 
 INSERT INTO "word" ("id", "language_id", "original", "translation", "next")
 VALUES
-  
+
+  (1, 1, 'ein', 'one', 2),
   (2, 1, 'zwei', 'two', 3),
   (3, 1, 'drei', 'three', 4),
   (4, 1, 'vier', 'four', 5),
   (5, 1, 'funf', 'five', 6),
-  (1, 1, 'ein', 'one', 2),
   (6, 1, 'sechs', 'six', 7),
   (7, 1, 'sieben', 'seven', 8),
   (8, 1, 'acht', 'eight', 9),
