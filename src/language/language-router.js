@@ -59,32 +59,61 @@ languageRouter.get('/head', async (req, res, next) => {
 	}
 });
 
-languageRouter.post('/guess', async (req, res, next) => {
+languageRouter.route('/guess').post(express.json(), async (req, res, next) => {
 	try {
-		console.log(req);
-		const guess = req.guess;
+		const guess = req.body.guess;
 		const db = req.app.get('db');
 		const languageId = req.language.id;
+		function swap(array, i, j) {
+			const tmp = array[i];
+			array[i] = array[j];
+			array[j] = tmp;
+		}
+		function bubbleSort(array) {
+			let swaps = 0;
+			for (let i = 0; i < array.length - 1; i++) {
+				if (array[i].next > array[i + 1].next) {
+					swap(array, i, i + 1);
+					swaps++;
+				}
+			}
+			if (swaps > 0) {
+				return bubbleSort(array);
+			}
+			return array;
+		}
 
 		let wordsList = new LinkedList();
 
 		let words = await LanguageService.getLanguageWords(db, languageId);
 
-		words.forEach((word) => {
-			wordsList.insertLast(word);
-		});
-		const isCorrect = LanguageService.checkGuess(guess, wordsList);
-		if (isCorrect === true) {
-			wordsList.head.memory_value = wordsList.head.memory_value * 2;
-		}
-		let currentWord = wordsList.remove(wordsList.head);
+		let sortedWords = bubbleSort(words);
+		let lastWord = sortedWords.shift();
+		sortedWords.push(lastWord);
 
-		wordsList.insertAt(wordsList.head.memory_value - 1, currentWord);
-		let wordsArr = [];
-		for (let i = 0; i < wordsList.length; i++) {
-			wordsArr.push(wordsList._findNthElement(i));
+		let score = await LanguageService.getScore(db);
+		score = score[0].total_score;
+
+		sortedWords.forEach((word) => wordsList.insertLast(word));
+
+		const isCorrect = LanguageService.checkGuess(guess, wordsList);
+
+		if (isCorrect === true) {
+			wordsList.head.value.memory_value = wordsList.head.value.memory_value * 2;
+			await LanguageService.updateScore(db, score);
 		}
-		res.send(wordsArr);
+
+		let currentWord = wordsList.remove(wordsList.head);
+		await LanguageService.updateMemory(db, currentWord);
+
+		wordsList.insertAt(
+			wordsList.head.value.memory_value - 1,
+			currentWord.value
+		);
+
+		await LanguageService.insertList(db, wordsList);
+		await LanguageService.updateHead(db, wordsList);
+		res.send('succes');
 	} catch (error) {
 		next(error);
 	}

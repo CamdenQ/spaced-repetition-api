@@ -15,6 +15,10 @@ const LanguageService = {
 			.first();
 	},
 
+	getScore(db) {
+		return db.from('language').select('language.total_score');
+	},
+
 	getLanguageWords(db, language_id) {
 		return db
 			.from('word')
@@ -39,29 +43,60 @@ const LanguageService = {
 			.where({ language_id });
 	},
 
-	// populateList(db, language_id) {
-	// 	try {
-	// 		const words = await this.getLanguageWords(db, language_id);
-	// 		console.log(words)
-	// 		let wordsList = new LinkedList();
-
-	// 		words.forEach((word) => {
-	// 			wordsList.insertLast(word);
-	// 		});
-	// 		return wordsList;
-	// 	} catch (error) {
-	// 		next(error);
-	// 	}
-	// },
-
 	checkGuess(guess, words) {
-		return guess.trim().toLowerCase() === words.head.translation;
+		let isCorrect = guess.trim().toLowerCase() === words.head.value.translation;
+
+		return isCorrect;
 	},
 
-	insertList(db, language_id, list) {
-		db.raw('TRUNCATE TABLE word');
-		db.insert(list).into('word').where({ language_id });
-		return;
+	insertList(db, list) {
+		let counter = 0;
+		let currNode = list.head;
+
+		while (counter < list.length - 1) {
+			db.update({ next: currNode.next.value.id })
+				.from('word')
+				.where({ id: currNode.value.id });
+			currNode = currNode.next;
+			counter++;
+		}
+		return db
+			.update({ next: null })
+			.from('word')
+			.where({ id: currNode.value.id });
+	},
+
+	updateMemory(db, head) {
+		// prettier-ignore
+		return db.from('word')
+			.where({ id: head.value.id }).update({ memory_value: head.value.memory_value });
+	},
+	updateHead(db, list) {
+		return db
+			.from('language')
+			.where({ id: list.head.value.language_id })
+			.update({ head: list.head.value.id });
+	},
+	updateScore(db, score) {
+		let newScore = score + 1;
+		return db
+			.from('language')
+			.update({ total_score: newScore })
+			.where({ id: 1 });
+	},
+	increaseCorrectCount(db, word) {
+		let newCount = word.value.correctCount + 1;
+		return db
+			.from('word')
+			.where({ id: word.value.id })
+			.update({ correct_count: newCount });
+	},
+	increaseIncorrectCount(db, word) {
+		let newCount = word.value.incorrectCount + 1;
+		return db
+			.from('word')
+			.where({ id: word.value.id })
+			.update({ incorrect_count: newCount });
 	},
 };
 
