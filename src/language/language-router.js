@@ -64,10 +64,11 @@ languageRouter.route('/guess').post(express.json(), async (req, res, next) => {
 		const guess = req.body.guess;
 		const db = req.app.get('db');
 		const languageId = req.language.id;
+		const userId = req.user.id;
 
-		let headId = await LanguageService.getHeadId(db);
-
-		headId = headId[0].head;
+		let headId = await LanguageService.getHeadId(db, userId);
+		console.log(headId);
+		headId = headId.head;
 
 		let head = await LanguageService.getWordById(db, headId);
 
@@ -75,14 +76,14 @@ languageRouter.route('/guess').post(express.json(), async (req, res, next) => {
 
 		let wordsList = LanguageService.createList(head, words);
 
-		let score = await LanguageService.getScore(db);
-		score = score[0].total_score;
+		let score = await LanguageService.getScore(db, userId);
+		score = score.total_score;
 
 		const isCorrect = LanguageService.checkGuess(guess, wordsList);
 
 		if (isCorrect === true) {
 			wordsList.head.value.memory_value = wordsList.head.value.memory_value * 2;
-			await LanguageService.updateScore(db, score);
+			await LanguageService.updateScore(db, score, userId);
 		}
 
 		let currentWord = wordsList.remove(wordsList.head);
@@ -92,7 +93,7 @@ languageRouter.route('/guess').post(express.json(), async (req, res, next) => {
 		wordsList.insertAt(currentWord.value.memory_value, currentWord.value);
 
 		await LanguageService.insertList(db, wordsList);
-		await LanguageService.updateHead(db, wordsList);
+		await LanguageService.updateHead(db, wordsList, userId);
 		res.send(wordsList);
 	} catch (error) {
 		next(error);

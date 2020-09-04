@@ -18,12 +18,20 @@ const LanguageService = {
 		return db.from('word').select('*').where({ id: id });
 	},
 
-	getHeadId(db) {
-		return db.from('language').select('language.head');
+	getHeadId(db, user_id) {
+		return db
+			.from('language')
+			.select('language.head')
+			.where('language.user_id', user_id)
+			.first();
 	},
 
-	getScore(db) {
-		return db.from('language').select('language.total_score');
+	getScore(db, user_id) {
+		return db
+			.from('language')
+			.select('language.total_score')
+			.where('language.user_id', user_id)
+			.first();
 	},
 
 	getLanguageWords(db, language_id) {
@@ -79,18 +87,18 @@ const LanguageService = {
 		return db.from('word')
 			.where({ id: head.value.id }).update({ memory_value: head.value.memory_value });
 	},
-	updateHead(db, list) {
+	updateHead(db, list, user_id) {
 		return db
 			.from('language')
-			.where({ id: list.head.value.language_id })
-			.update({ head: list.head.value.id });
+			.update({ head: list.head.value.id })
+			.where('language.user_id', user_id);
 	},
-	updateScore(db, score) {
+	updateScore(db, score, user_id) {
 		let newScore = score + 1;
 		return db
 			.from('language')
 			.update({ total_score: newScore })
-			.where({ id: 1 });
+			.where('language.user_id', user_id);
 	},
 	increaseCorrectCount(db, word) {
 		let newCount = word.value.correctCount + 1;
