@@ -101,14 +101,14 @@ const LanguageService = {
 			.where('language.user_id', user_id);
 	},
 	increaseCorrectCount(db, word) {
-		let newCount = word.value.correctCount + 1;
+		let newCount = word.value.correct_count + 1;
 		return db
 			.from('word')
 			.where({ id: word.value.id })
 			.update({ correct_count: newCount });
 	},
 	increaseIncorrectCount(db, word) {
-		let newCount = word.value.incorrectCount + 1;
+		let newCount = word.value.incorrect_count + 1;
 		return db
 			.from('word')
 			.where({ id: word.value.id })

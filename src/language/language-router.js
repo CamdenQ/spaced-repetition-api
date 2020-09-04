@@ -90,11 +90,27 @@ languageRouter.route('/guess').post(express.json(), async (req, res, next) => {
 
 		await LanguageService.updateMemory(db, currentWord);
 
+		if (isCorrect === true) {
+			await LanguageService.increaseCorrectCount(db, currentWord);
+			currentWord.value.correct_count++;
+			score++;
+		} else {
+			await LanguageService.increaseIncorrectCount(db, currentWord);
+			currentWord.value.incorrect_count++;
+		}
+
 		wordsList.insertAt(currentWord.value.memory_value, currentWord.value);
 
 		await LanguageService.insertList(db, wordsList);
 		await LanguageService.updateHead(db, wordsList, userId);
-		res.send(wordsList);
+		// prettier-ignore
+		let response = {
+			...currentWord.value,
+			isCorrect: isCorrect,
+			guess: guess,
+			total_score: score
+		};
+		res.json(response);
 	} catch (error) {
 		next(error);
 	}
